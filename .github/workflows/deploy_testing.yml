@@ -1,0 +1,42 @@
+name: Deploy to Testing Environment
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy_testing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Deploy to Testing Environment
+        run: |
+          # Assuming you have SSH access to your Testing instance
+          ssh -o StrictHostKeyChecking=no ubuntu@54.173.162.210 'bash -s' < deploy_testing.sh
+          # Modify deploy_testing.sh with your deployment commands
+          # For example, copy files to the server, restart services, etc.
+
+      - name: Notify QA
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: smtp.example.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 'Testing Environment Deployment Successful'
+          body: 'The changes have been deployed to the Testing environment. Access the app at http://54.173.162.210'
